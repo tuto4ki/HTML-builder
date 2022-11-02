@@ -7,7 +7,7 @@ async function copyDir () {
     const deleteFile = fs.unlink;
     const dirName =  path.join(__dirname, 'files');
     const dirNameCopy = path.join(__dirname, 'filesCopy');
-    const createDir = await mkdir(dirNameCopy, { recursive: true });
+    await mkdir(dirNameCopy, { recursive: true });
     fs.readdir(dirNameCopy,
         (error, items) => {
             for (let i = 0; i < items.length; i++) {
