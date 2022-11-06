@@ -7,9 +7,13 @@ const writeStream = fs.createWriteStream(path.join(__dirname, 'text.txt'), 'utf-
 
 stdout.write('Введите данные\n');
 stdin.on('data', data =>  {
-    if (data.toString() == 'exit\n') 
+    if (data.toString().trim() == 'exit') 
         process.exit();
     else
         writeStream.write(data);
     });
 process.on('exit', () => stdout.write('Удачи!\n'));
+process.on('SIGINT', () => { 
+    stdout.write(process.platform === 'win32' ? '\r\n' : '\n');
+    process.exit();
+});

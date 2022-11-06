@@ -1,31 +1,32 @@
 const fs = require('fs');
+const promises = fs.promises;
 const path = require('path');
 const dirName =  path.join(__dirname, 'styles');
 
-
-function joinFile(dirName) {  
-    fs.readdir(dirName,
-    
-        async function (error, items) {
-            const writeStream =  fs.createWriteStream(path.join(__dirname, 'project-dist', 'bundle.css'));
-            for (let i = 0; i < items.length; i++) { 
-                let extnameFile = path.extname(items[i]);
-                if (extnameFile === '.css') {
-                    const readStream = new fs.ReadStream(path.join(__dirname, 'styles', items[i]), 'utf-8');
-                    readStream.pipe(writeStream);
-                    /*
-                    let arr = [];
-                    readStream.on('data', data => { arr.push(data); });
-                    readStream.on('close', await function ()  {
-                        for (let i = 0; i < arr.length; i++) {
-                            writeStream.write(arr[i]);
-                        }
-                    });*/
+async function joinFile(dirName, newFile) {
+    const charLine = process.platform === 'win32' ? '\r\n' : '\n';
+    const writeStream =  fs.createWriteStream(newFile);
+    const files = await promises.readdir(dirName);
+    for (let file of files) {
+        let stat = await promises.stat(path.join(dirName, file));
+        if (stat.isFile()) {
+            let extnameFile = path.extname(file);
+            if (extnameFile === '.css') {
+                const readStream = fs.createReadStream(path.join(dirName, file));
+                for await (let data of readStream) {
+                     writeData(writeStream, data);
                 }
+                writeData(writeStream, charLine);
             }
         }
-    );
+    }
 }
 
+function writeData (writer, data) {
+    return new Promise((resolve) => {
+        writer.write(data);
+        resolve();
+    })
+}
 
-joinFile(dirName);
+joinFile(dirName, path.join(__dirname, 'project-dist', 'bundle.css'));
